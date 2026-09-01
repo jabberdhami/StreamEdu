@@ -1,0 +1,6 @@
+node_modules/
+Videos/
+yt-dlp.exe
+.DS_Store
+data.json
+.env

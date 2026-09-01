@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "username": "jabber",
+      "password": "c8a7d56741b3b3baa1a40ed5307b35f6a54f750e726d79a3611b174eb32cc225",
+      "role": "admin",
+      "profilePic": "/profiles/jabber.jpeg?t=1787367378051",
+      "displayName": "Jabber"
+    },
+    {
+      "username": "user",
+      "password": "c8a7d56741b3b3baa1a40ed5307b35f6a54f750e726d79a3611b174eb32cc225",
+      "role": "user",
+      "displayName": "",
+      "profilePic": "/profiles/user.png?t=1787367420309",
+      "isSuspended": false
+    }
+  ]
+}

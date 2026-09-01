@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamed</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="netflix-navbar" id="navbar">
+        <div class="navbar-left">
+            <h2 class="logo"><span style="color: var(--accent);">STREAM</span><span style="color: #fff;">ED</span></h2>
+            <ul class="nav-links">
+                <li class="active"><a href="#" onclick="showCatalog('all', event)">Home</a></li>
+                <li><a href="#" onclick="showCatalog('videos', event)">Videos</a></li>
+                <li><a href="#" onclick="showCatalog('playlists', event)">Playlists</a></li>
+            </ul>
+        </div>
+        <div class="navbar-right">
+            <div class="search-box">
+                <i class="fa-solid fa-search search-icon" id="search-icon"></i>
+                <input type="text" id="search-input" placeholder="Titles, people, genres">
+            </div>
+            <div class="view-options-box" style="display: flex; align-items: center; background: rgba(0,0,0,0.75); border-radius: 4px; padding: 2px 10px;">
+                <i class="fa-solid fa-table-cells" style="color: #fff; margin-right: 8px;"></i>
+                <select id="view-mode-select" onchange="changeViewMode(this.value)" style="background: transparent; color: #fff; border: none; outline: none; font-size: 0.9rem; cursor: pointer;">
+                    <option value="grid" style="color: #000;">Grid</option>
+                    <option value="list" style="color: #000;">List</option>
+                    <option value="details-compact" style="color: #000;">Details Compact</option>
+                    <option value="big" style="color: #000;">Big Thumbnail</option>
+                    <option value="medium" style="color: #000;">Medium Thumbnail</option>
+                    <option value="thumbnail" style="color: #000;">Small Thumbnail</option>
+                </select>
+            </div>
+            <div class="nav-icon" id="add-video-icon" onclick="openModal('add-video-modal')" title="Add Video" style="display:none;">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+            <div class="nav-icon" id="new-folder-icon" onclick="openModal('folder-modal')" title="New Folder" style="display:none;">
+                <i class="fa-solid fa-folder-plus"></i>
+            </div>
+            <div class="user-menu" id="user-menu">
+                <img src="" id="user-avatar-img" class="user-avatar" style="display:none; width: 35px; height: 35px; border-radius: 4px; object-fit: cover;">
+                <i class="fa-solid fa-circle-user user-icon" id="user-avatar-icon"></i>
+                <div class="dropdown">
+                    <a href="#" onclick="openModal('profile-modal')" id="profile-settings-btn"><i class="fa-solid fa-user-gear"></i> Profile Settings</a>
+                    <a href="#" onclick="openModal('admin-modal')" id="manage-users-btn" style="display:none;"><i class="fa-solid fa-users-gear"></i> Manage Users</a>
+                    <a href="#" onclick="shutdownServer()" id="shutdown-server-btn" style="display:none;"><i class="fa-solid fa-power-off"></i> Shutdown Server</a>
+                    <a href="#" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out of Streamed</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content App Container -->
+    <div id="app-content">
+        <!-- Hero Section -->
+        <div class="hero-section" id="hero-section">
+            <div class="hero-background" id="hero-background"></div>
+            <video id="hero-video-bg" class="hero-background" muted loop style="display:none; object-fit:cover; pointer-events:none; width:100%; height:100%;"></video>
+            <div class="hero-vignette"></div>
+            <div class="hero-content">
+                <h1 class="hero-title" id="hero-title">Welcome to Streamed</h1>
+                <p class="hero-description" id="hero-description">Watch FREE Open-Source Movies & TV Shows instantly.</p>
+                <div class="hero-buttons">
+                    <button class="btn-play" id="hero-play-btn"><i class="fa-solid fa-play"></i> Play</button>
+                    <button class="btn-more"><i class="fa-solid fa-circle-info"></i> More Info</button>
+                </div>
+            </div>
+            <div class="hero-controls">
+                <button id="hero-mute-btn" class="mute-btn"><i class="fa-solid fa-volume-xmark"></i></button>
+            </div>
+            <div class="hero-arrows" style="position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); padding: 0 4%; z-index: 10; pointer-events: none;">
+                <button id="hero-prev-btn" class="arrow-btn" style="pointer-events: auto;"><i class="fa-solid fa-chevron-left"></i></button>
+                <button id="hero-next-btn" class="arrow-btn" style="pointer-events: auto;"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="hero-pagination" id="hero-pagination">
+                <!-- Dots added via JS -->
+            </div>
+        </div>
+
+        <!-- Catalog Container -->
+        <div class="catalog-container" id="catalog-container">
+            <div class="loading" style="text-align:center; margin-top:50px; color: #fff;">Loading catalog...</div>
+        </div>
+    </div>
+
+    <!-- Video Player View (Hidden by default) -->
+    <div class="video-container" id="video-container" style="display: none;">
+        <div class="player-header">
+            <button class="back-btn" onclick="showCatalog()"><i class="fa-solid fa-arrow-left"></i> Back to Browse</button>
+            <h2 id="current-video-title" style="flex: 1; margin-left: 20px;">Title</h2>
+            <button class="btn" id="next-lesson-btn" style="display:none; width:auto; padding:8px 15px; background:rgba(255,255,255,0.2); color:#fff; align-items:center; gap:8px;" onclick="playNextLesson()"><i class="fa-solid fa-forward-step"></i> Next Lesson</button>
+        </div>
+        <div class="video-layout">
+            <div class="video-player-wrapper" style="position: relative;">
+                <video id="video-player" controls preload="metadata">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="placeholder-overlay" id="video-placeholder" style="display: none;">
+                    <i class="fa-regular fa-circle-play"></i>
+                    <p>No video selected</p>
+                </div>
+                <!-- Up Next Overlay -->
+                <div class="up-next-overlay" id="up-next-overlay" style="display: none;">
+                    <div class="up-next-content">
+                        <h3>Up Next</h3>
+                        <h2 id="up-next-title">Next Video Title</h2>
+                        <div class="up-next-countdown" id="up-next-countdown">5</div>
+                        <div class="up-next-buttons">
+                            <button class="btn btn-primary" onclick="playNextLesson()"><i class="fa-solid fa-play"></i> Play Now</button>
+                            <button class="btn" style="background: rgba(255,255,255,0.2); color: white;" onclick="cancelUpNext()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="video-metadata-sidebar" id="video-metadata-sidebar">
+                <div id="video-chapters" class="video-chapters" style="display:none;"></div>
+                <div id="video-description" class="video-description" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Playlist Details Modal -->
+    <div class="modal-overlay" id="playlist-modal">
+        <div class="modal playlist-modal" style="max-width: 800px; padding: 0; overflow: hidden; background: #181818;">
+            <div class="modal-header" style="position: absolute; top: 10px; right: 20px; z-index: 10; margin: 0;">
+                <button class="close-btn" onclick="closeModal('playlist-modal')" style="background: rgba(0,0,0,0.7); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: white;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="playlist-hero" style="position: relative; height: 300px; background-size: cover; background-position: center;" id="playlist-hero-bg">
+                <div class="playlist-hero-vignette" style="position: absolute; inset: 0; background: linear-gradient(to top, #181818 0%, transparent 100%);"></div>
+                <div style="position: absolute; bottom: 20px; left: 30px;">
+                    <h2 id="playlist-title" style="font-size: 2.5rem; margin-bottom: 15px;">Playlist Title</h2>
+                    <button class="btn-play" id="playlist-play-btn" style="padding: 8px 24px; font-size: 1rem; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; background: white; color: black;"><i class="fa-solid fa-play"></i> Play</button>
+                </div>
+            </div>
+
+            <div class="playlist-episodes" style="padding: 0 30px 30px 30px;">
+                <h3 style="margin-bottom: 20px; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px;">Episodes</h3>
+                <div id="playlist-episodes-list" style="max-height: 350px; overflow-y: auto; padding-right: 10px;">
+                    <!-- Episodes rendered here via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Settings Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal profile-modal" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h2>Profile Settings</h2>
+                <button class="close-btn" onclick="closeModal('profile-modal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <img src="" id="modal-profile-img" style="display:none; width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 15px auto;">
+                <i class="fa-solid fa-circle-user" id="modal-profile-icon" style="font-size: 100px; color: #555; margin-bottom: 15px;"></i>
+            </div>
+
+            <form id="profile-pic-form">
+                <div class="input-group">
+                    <label>Upload Profile Picture (JPG/PNG)</label>
+                    <input type="file" id="profile-pic-input" accept="image/*">
+                </div>
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Display Name</label>
+                    <input type="text" id="profile-display-name" placeholder="Leave blank to use username">
+                </div>
+                <button type="submit" class="btn btn-primary" id="profile-pic-submit" style="width: 100%; margin-top: 10px;">Save Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login Modal (Overlay) -->
+    <div class="modal-overlay active" id="login-overlay" style="background: #141414; z-index: 9999;">
+        <div class="modal login-modal" style="margin: auto;">
+            <h1 style="text-align: center; margin-bottom: 30px;"><span style="color: var(--accent);">STREAM</span><span style="color: #fff;">ED</span></h1>
+            <h3 style="margin-bottom: 20px;">Sign In</h3>
+            <form id="login-form">
+                <div class="input-group">
+                    <input type="text" id="login-username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin User Management Modal -->
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal admin-modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Manage Users</h2>
+                <button class="close-btn" onclick="closeModal('admin-modal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="users-list" id="users-list" style="margin: 15px 0;">
+                <!-- Users loaded via JS -->
+            </div>
+            <form id="add-user-form" style="display: flex; gap: 10px; margin-top: 10px;">
+                <input type="text" id="new-username" placeholder="Username" required style="padding: 10px; border-radius: 4px; background: #333; color: #fff; border:none; flex:1;">
+                <input type="password" id="new-password" placeholder="Password" required style="padding: 10px; border-radius: 4px; background: #333; color: #fff; border:none; flex:1;">
+                <select id="new-role" style="padding: 10px; border-radius: 4px; background: #333; color: #fff; border:none;">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="padding: 10px; width:auto;">Add</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Folder Modal -->
+    <div class="modal-overlay" id="folder-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Create New Folder</h3>
+                <button class="close-btn" onclick="closeModal('folder-modal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="folder-form">
+                    <div class="input-group">
+                        <label for="folder-path">Location (Relative Path)</label>
+                        <input type="text" id="folder-path" placeholder="e.g. movies (leave blank for root)">
+                    </div>
+                    <div class="input-group">
+                        <label for="folder-name">Folder Name</label>
+                        <input type="text" id="folder-name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Folder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Video Modal -->
+    <div class="modal-overlay" id="add-video-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add Video</h3>
+                <button class="close-btn" onclick="closeModal('add-video-modal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('upload')">Local File</button>
+                <button class="tab-btn" onclick="switchTab('url')">From URL</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Upload Tab -->
+                <form id="upload-form" class="tab-content active">
+                    <div class="input-group">
+                        <label for="upload-path-select">Destination Folder</label>
+                        <select id="upload-path-select" onchange="toggleNewFolderInput('upload')">
+                            <option value="">Root / (No Folder)</option>
+                        </select>
+                        <input type="text" id="upload-path-new" placeholder="Type new folder name..." style="display: none; margin-top: 10px;">
+                    </div>
+                    <div class="input-group">
+                        <label class="file-drop-area">
+                            <span class="file-msg">Choose video files or drag them here</span>
+                            <input type="file" id="upload-file" accept="video/*" required multiple>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="upload-btn">Upload Video</button>
+                    
+                    <div class="upload-progress-container" id="upload-progress-container" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="upload-progress-fill"></div>
+                        </div>
+                        <div class="progress-text" id="upload-progress-text">0%</div>
+                    </div>
+                </form>
+
+                <!-- URL Tab (yt-dlp) -->
+                <form id="ytdlp-form" class="tab-content" style="display: none;">
+                    <div class="input-group">
+                        <label for="ytdlp-url">Video URL (YouTube, Vimeo, etc.)</label>
+                        <input type="url" id="ytdlp-url" placeholder="https://www.youtube.com/watch?v=..." required>
+                    </div>
+                    <div class="input-group">
+                        <label for="ytdlp-path-select">Destination Folder</label>
+                        <select id="ytdlp-path-select" onchange="toggleNewFolderInput('ytdlp')">
+                            <option value="">Root / (No Folder)</option>
+                        </select>
+                        <input type="text" id="ytdlp-path-new" placeholder="Type new folder name..." style="display: none; margin-top: 10px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Download to Server</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Tasks Widget -->
+    <div class="active-tasks" id="active-tasks" style="display: none;">
+        <h4>Active Downloads</h4>
+        <div id="tasks-container"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
