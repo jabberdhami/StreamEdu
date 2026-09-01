@@ -39,8 +39,8 @@ StreamEdu is a premium, Netflix-inspired local video streaming platform built to
    http://localhost:3000
    ```
 3. **Default Login**:
-   - **Username**: `admin`
-   - **Password**: `admin`
+   - **Username**: `jabber`
+   - **Password**: `jabber`
 
 *(Note: The `Videos` folder is intentionally excluded from the repository to prevent uploading heavy media files. You can create the `Videos` folder locally or the app will generate one for you when you upload/download your first video).*
 
